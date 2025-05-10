@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualização de Fatorial com Pilha</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        #entrada-e-resultado {
+            background-color: #f7fafc;
+        }
+        #pilha-visualizacao {
+            background-color: #e5e7eb;
+        }
+        .destaque {
+            background-color: #fef08a;
+            color: #1e293b;
+            padding: 0.2em;
+            border-radius: 0.375rem;
+        }
+        .chamada-pilha {
+            background-color: #6ee7b7;
+            color: #1e293b;
+        }
+        .retorno-pilha {
+            background-color: #fca5a5;
+            color: #1e293b;
+        }
+        .pilha-item {
+            font-family: 'Roboto Mono', monospace;
+        }
+        .debug-step {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            background-color: #d1d5db;
+            color: #1f2937;
+        }
+        .linha-destacada {
+            background-color: #fef08a;
+            color: #1e293b;
+        }
+        #passos {
+            margin-left: 20px;
+        }
+        .passo {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            background-color: #d1d5db;
+            color: #1f2937;
+        }
+        .chamada {
+            background-color: #6ee7b7;
+            color: #1e293b;
+        }
+        .retorno {
+            background-color: #fca5a5;
+            color: #1e293b;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="container mx-auto grid grid-cols-1 gap-8">
+        <h1 class="text-3xl font-semibold text-gray-800 text-center">Visualização de Fatorial com Pilha de Chamadas</h1>
+
+        <div id="entrada-e-resultado" class="bg-white shadow-md rounded-lg p-6">
+            <div class="flex flex-col sm:flex-row gap-4 items-center">
+                <div class="flex flex-col sm:flex-row gap-2 items-center flex-grow">
+                    <label for="numero" class="block text-gray-700 text-sm font-bold mb-2 sm:mb-0">Digite um número:</label>
+                    <input type="number" id="numero" placeholder="Ex: 5" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <button id="calcular" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Calcular Fatorial</button>
+            </div>
+            <div id="resultado" class="mt-4 text-xl text-gray-800 font-semibold"></div>
+        </div>
+
+        <div id="pilha-visualizacao" class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Pilha de Chamadas:</h2>
+            <ul id="pilha" class="list-none p-0">
+                <li class="text-gray-500">Pilha vazia</li>
+            </ul>
+        </div>
+
+        <div id="explicacao" class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Explicação do Código C:</h2>
+            <p class="text-gray-700 leading-relaxed">
+                A função fatorial em C é implementada recursivamente. Isso significa que a função chama a si mesma com um valor de entrada menor até que o caso base seja atingido (n = 0).
+            </p>
+            <pre id="codigo-c" class="bg-gray-100 rounded-md p-4 mt-4 overflow-x-auto"><code>
+int fatorial(int n) { <span id="linha-1"></span>
+    if (n == 0) { <span id="linha-2"></span>
+        return 1; <span id="linha-3"></span>
+    } else { <span id="linha-4"></span>
+        return n * fatorial(n - 1); <span id="linha-5"></span>
+    }
+}
+            </code></pre>
+            <p class="text-gray-700 leading-relaxed mt-4">
+                Cada chamada recursiva adiciona um novo quadro à pilha de chamadas. Um quadro da pilha contém as variáveis locais da função, o endereço de retorno (para onde a execução do código deve retornar após a conclusão da chamada da função) e outras informações de contexto.
+            </p>
+            <ul class="list-disc list-inside mt-4 space-y-2">
+                <li><span class="font-semibold">Chamada da função:</span> Quando a função `fatorial` é chamada, um novo quadro é adicionado à pilha.</li>
+                <li><span class="font-semibold">Caso base:</span> Quando `n` é 0, a função retorna 1 e o quadro é removido da pilha.</li>
+                <li><span class="font-semibold">Chamada recursiva:</span> Para `n` maior que 0, a função chama a si mesma com `n-1`. Um novo quadro é adicionado à pilha.</li>
+                <li><span class="font-semibold">Retorno de valores:</span> Cada chamada retorna `n * fatorial(n-1)` para a chamada anterior.</li>
+                <li><span class="font-semibold">Desempilhamento:</span> Os quadros são removidos da pilha à medida que as chamadas de função terminam.</li>
+            </ul>
+        </div>
+
+        <div id="depuracao" class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Passos da Depuração:</h2>
+            <div id="passos" class="space-y-2">
+                <p class="text-gray-700">Insira um número e clique em 'Calcular Fatorial' para ver os passos da depuração.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const numeroInput = document.getElementById('numero');
+        const calcularButton = document.getElementById('calcular');
+        const resultadoDiv = document.getElementById('resultado');
+        const pilhaList = document.getElementById('pilha');
+        const passosDiv = document.getElementById('passos');
+        const codigoC = document.getElementById('codigo-c');
+
+        let pilha = [];
+        let enderecoMemoria = 1000;
+        let passos = [];
+        let delayMs = 500;
+        let timeoutId;
+
+        function fatorial(n) {
+            const enderecoAtual = enderecoMemoria;
+            passos.push({ tipo: 'chamada', valor: n, endereco: enderecoAtual, acao: `fatorial(${n}) chamado`, linhaCodigo: 1, nivel: pilha.length });
+            pilha.push({ tipo: 'chamada', valor: n, endereco: enderecoAtual });
+            atualizarPilhaVisualizacao();
+            enderecoMemoria += 4;
+
+            if (n === 0) {
+                const valorRetorno = 1;
+                passos.push({ tipo: 'retorno', valor: valorRetorno, endereco: enderecoAtual, acao: `fatorial(0) retorna 1`, linhaCodigo: 3, nivel: pilha.length });
+                pilha.push({ tipo: 'retorno', valor: valorRetorno, endereco: enderecoAtual });
+                atualizarPilhaVisualizacao();
+                enderecoMemoria -= 4;
+                return valorRetorno;
+            } else {
+                const resultadoParcial = n * fatorial(n - 1);
+                passos.push({ tipo: 'retorno', valor: resultadoParcial, endereco: enderecoAtual, acao: `fatorial(${n}) retorna ${n} * ${n-1} = ${resultadoParcial}`, linhaCodigo: 5, nivel: pilha.length });
+                pilha.push({ tipo: 'retorno', valor: resultadoParcial, endereco: enderecoAtual });
+                atualizarPilhaVisualizacao();
+                enderecoMemoria -= 4;
+                return resultadoParcial;
+            }
+        }
+
+        function atualizarPilhaVisualizacao() {
+            pilhaList.innerHTML = '';
+            if (pilha.length === 0) {
+                pilhaList.innerHTML = '<li class="text-gray-500">Pilha vazia</li>';
+            } else {
+                pilha.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = `${item.tipo === 'chamada' ? 'Chamada:' : 'Retorno:'} ${item.valor} (End: ${item.endereco})`;
+                    if (item.tipo === 'chamada') {
+                        li.classList.add('chamada-pilha');
+                    } else {
+                        li.classList.add('retorno-pilha');
+                    }
+                    li.classList.add('py-2', 'px-4', 'rounded-md', 'mb-2', 'shadow-md', 'pilha-item');
+                    pilhaList.appendChild(li);
+                });
+            }
+        }
+
+        function atualizarPassosVisualizacao() {
+            passosDiv.innerHTML = '';
+            passos.forEach(passo => {
+                const div = document.createElement('div');
+                div.textContent = `${passo.acao} (End: ${passo.endereco})`;
+                div.classList.add('debug-step');
+                if (passo.tipo === 'chamada') {
+                    div.classList.add('chamada');
+                } else {
+                    div.classList.add('retorno');
+                }
+                div.style.marginLeft = `${passo.nivel * 20}px`;
+                passosDiv.appendChild(div);
+            });
+        }
+
+        function destacarLinhaCodigo(linha) {
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`linha-${i}`).classList.remove('linha-destacada');
+            }
+            if (linha) {
+                document.getElementById(`linha-${linha}`).classList.add('linha-destacada');
+            }
+        }
+
+        function limparDepuracao() {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            passos = [];
+            pilha = [];
+            enderecoMemoria = 1000;
+            resultadoDiv.textContent = '';
+            atualizarPilhaVisualizacao();
+            atualizarPassosVisualizacao();
+            destacarLinhaCodigo(null);
+        }
+
+        calcularButton.addEventListener('click', () => {
+            const numero = parseInt(numeroInput.value);
+            if (isNaN(numero) || numero < 0) {
+                resultadoDiv.textContent = 'Por favor, digite um número inteiro não negativo.';
+                resultadoDiv.classList.remove('text-green-600');
+                resultadoDiv.classList.add('text-red-600');
+                limparDepuracao();
+                return;
+            }
+
+            limparDepuracao();
+
+            let i = 0;
+            function proximoPasso() {
+                if (i < passos.length) {
+                    const passo = passos[i];
+                    destacarLinhaCodigo(passo.linhaCodigo);
+                    atualizarPassosVisualizacao();
+                    pilha.length = i;
+                    atualizarPilhaVisualizacao();
+                    i++;
+                    timeoutId = setTimeout(proximoPasso, delayMs);
+                } else {
+                    const resultado = fatorial(numero);
+                    resultadoDiv.textContent = `O fatorial de ${numero} é ${resultado}.`;
+                    resultadoDiv.classList.remove('text-red-600');
+                    resultadoDiv.classList.add('text-green-600');
+                    atualizarPilhaVisualizacao();
+                    destacarLinhaCodigo(null);
+                }
+            }
+
+            fatorial(numero);
+            proximoPasso();
+        });
+    </script>
+</body>
+</html>
